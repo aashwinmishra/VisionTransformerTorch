@@ -3,6 +3,54 @@ Classes for models to be trained.
 """
 import torch
 import torch.nn as nn
+import torchvision
+from typing import Tuple
+
+
+def get_model_and_weights(model_name: str, weights_version: str = None) -> Tuple:
+  """
+  Takes specifications of the pretrained model and the weights to be loaded.
+  Returns a tuple with model and weights.
+  Args:
+    model_name: Name and version of pretrained model to be loaded from torchvision.models.
+    weights_version: version of weights for the pretrianed model.
+  Returns:
+    Tuple with pretrained model and weights.
+  Raises:
+    KeyError: if the model_name is not found in the list of image classification models at torchvision.models.
+  """
+  all_models = torchvision.models.list_models(module=torchvision.models)
+  if model_name.lower() not in all_models:
+    raise KeyError
+  else:
+    if weights_version is None:
+      weights_version="DEFAULT"
+    model = torchvision.models.get_model(model_name, weights=weights_version)
+    weights_config = model_name+"_Weights."+weights_version
+    weights = torchvision.models.get_weight(weights_config)
+    return model, weights
+
+
+def transferlearning_prep(model: torch.nn.Module, num_classes: int):
+  """
+  Prepares pre-trained model for training, by
+  freezing feature extractor weights and correcting final layer for number
+  of classes in our dataset.
+  Args:
+    model: pretrained model
+    num_classes: number of classes in current dataset
+  Returns:
+    None
+  Raises:
+    NameError: if the pre-trained model does not have a features or a
+    classifier section.
+  """
+  try:
+    for param in model.features.parameters():
+      param.requires_grad = False
+    model.classifier[-1] = nn.Linear(model.classifier[-1].in_features, 3)
+  except:
+    raise NameError
 
 
 class TinyVGG(nn.Module):

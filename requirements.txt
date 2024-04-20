@@ -1,5 +1,6 @@
 torch
 torchvision
 torchmetrics
+torchinfo
 requests
 PIL

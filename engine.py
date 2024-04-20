@@ -109,7 +109,7 @@ def train(model: torch.nn.Module,
         val_losses.append(val_result["epoch_loss"])
         val_metrics.append(val_result["epoch_metric"])
         print(
-            f"Epoch: {epoch + 1} Train Loss: {train_losses[-1]} Train Metric: {train_metrics[-1]} Val Loss: {val_losses[-1]} Val Metirc: {val_metrics[-1]}")
+            f"Epoch: {epoch + 1} Train Loss: {train_losses[-1]} Train Metric: {train_metrics[-1]} Val Loss: {val_losses[-1]} Val Metric: {val_metrics[-1]}")
 
     return {"train_losses": train_losses, "train_metrics": train_metrics,
             "val_losses": val_losses, "val_mettrics": val_metrics}
