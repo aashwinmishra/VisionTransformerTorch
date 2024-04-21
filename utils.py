@@ -35,3 +35,23 @@ def save_model(model_dir: str, model_name: str, model: torch.nn.Module):
   if not model_name.endswith("pt"):
     model_name += ".pt"
   torch.save(model.state_dict(), os.path.join(model_dir, model_name))
+
+
+def create_summary_writer(experiment_name: str, model_name: str, extras: str = None) \
+        -> torch.utils.tensorboard.SummaryWriter:
+  """
+  Instantiates and returns a Summary writer for the experiment, that writers to
+  runs/experiment_name/model_name/extras
+  Args:
+    experiment_name: Name of experiment (say, dataset)
+    model_name: Name of model used
+    extras: Additional details
+  Returns:
+    SummaryWriter instance for the experiment
+  """
+  if extras:
+    log_dir = os.path.join("runs/", experiment_name, model_name, extras)
+  else:
+    log_dir = os.path.join("runs/", experiment_name, model_name)
+  writer = torch.utils.tensorboard.SummaryWriter(log_dir)
+  return writer

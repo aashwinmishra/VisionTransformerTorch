@@ -84,35 +84,39 @@ def train(model: torch.nn.Module,
           opt: torch.optim.Optimizer,
           metric: torchmetrics.metric,
           device: torch.device,
+          writer: torch.utils.tensorboard.SummaryWriter,
           num_epochs: int = 10) -> Dict:
-    """
-    Performs defined number of epochs of trianing and validation for the model on
-    the data loaders, returning the losses and metrics for each epoch.
-    Args:
-      model: model to be trained and evaluated.
-      train_dl: Dataloader with training data.
-      val_dl: Dataloader with testing data.
-      loss_fn: Differentiable loss function to use for gradients.
-      opt: Optimizer to tune model params.
-      metric: Metric to evaluate model.
-      device: Device on which model and eventually data shall reside
-      num_epochs: Number of epochs of training
-    Returns:
-      Dict with history of losses and metric on train and val data.
-    """
-    train_losses, val_losses, train_metrics, val_metrics = [], [], [], []
-    for epoch in range(num_epochs):
-        train_result = train_step(model, train_dl, loss_fn, opt, metric, device)
-        val_result = val_step(model, val_dl, loss_fn, metric, device)
-        train_losses.append(train_result["epoch_loss"])
-        train_metrics.append(train_result["epoch_metric"])
-        val_losses.append(val_result["epoch_loss"])
-        val_metrics.append(val_result["epoch_metric"])
-        print(
-            f"Epoch: {epoch + 1} Train Loss: {train_losses[-1]} Train Metric: {train_metrics[-1]} Val Loss: {val_losses[-1]} Val Metric: {val_metrics[-1]}")
+  """
+  Performs defined number of epochs of trianing and validation for the model on
+  the data loaders, returning the losses and metrics for each epoch.
+  Args:
+    model: model to be trained and evaluated.
+    train_dl: Dataloader with training data.
+    val_dl: Dataloader with testing data.
+    loss_fn: Differentiable loss function to use for gradients.
+    opt: Optimizer to tune model params.
+    metric: Metric to evaluate model.
+    device: Device on which model and eventually data shall reside
+    writer: instance of tensorboard Summarywriter to log metrics & losses
+    num_epochs: Number of epochs of training
+  Returns:
+    Dict with history of losses and metric on train and val data.
+  """
+  train_losses, val_losses, train_metrics, val_metrics = [], [], [], []
+  for epoch in range(num_epochs):
+    train_result = train_step(model, train_dl, loss_fn, opt, metric, device)
+    val_result = val_step(model, val_dl, loss_fn, metric, device)
+    train_losses.append(train_result["epoch_loss"])
+    train_metrics.append(train_result["epoch_metric"])
+    val_losses.append(val_result["epoch_loss"])
+    val_metrics.append(val_result["epoch_metric"])
+    print(f"Epoch: {epoch+1} Train Loss: {train_losses[-1]} Train Metric: {train_metrics[-1]} Val Loss: {val_losses[-1]} Val Metirc: {val_metrics[-1]}")
+    writer.add_scalars(main_tag="Loss", tag_scalar_dict={"train_loss": train_losses[-1], "val_loss": val_losses[-1]}, global_step=epoch+1)
+    writer.add_scalars(main_tag="Metric", tag_scalar_dict={"train_metric": train_metrics[-1], "val_metric": val_metrics[-1]}, global_step=epoch+1)
 
-    return {"train_losses": train_losses, "train_metrics": train_metrics,
-            "val_losses": val_losses, "val_mettrics": val_metrics}
+  writer.flush()
+  return {"train_losses": train_losses, "train_metrics": train_metrics,
+          "val_losses": val_losses, "val_mettrics": val_metrics}
 
 
 
