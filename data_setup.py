@@ -4,15 +4,13 @@ Functions to download data, create datasets and dataloaders.
 """
 import torch
 import torchvision
-import torchvision.transforms as transforms
-from torchvision.io import read_image
 import os
 import requests
 import zipfile
 import pathlib
 from pathlib import Path
 from PIL import Image
-from typing import Dict, List, Tuple
+from typing import Dict
 
 
 class ImageClassificationDataset(torch.utils.data.Dataset):

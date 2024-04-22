@@ -4,7 +4,7 @@ Functions to train and evaluate model on the image dataset
 import torch
 import torch.nn as nn
 import torchmetrics
-from typing import Dict, List, Tuple
+from typing import Dict
 
 
 def train_step(model: torch.nn.Module,
