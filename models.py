@@ -7,6 +7,45 @@ import torchvision
 from typing import Tuple
 
 
+class PatchEmbeddingConv(torch.nn.Module):
+  """
+  Defines the alternate Patch Embeddings via Conv layers in Dosovitskiy et al (2021).
+  Attributes:
+      layer: Convolutional layer to create patches and embeddings.
+      flatten: Flatten layer to flatten p \time p pathes to a p^2 vector.
+  """
+  def __init__(self, in_channels: int = 3, patch_size: int = 16, embedding_dim: int = 768):
+    """
+    Args:
+      :param in_channels: Channels in images. 3 if color images, 1 if BnW
+      :param patch_size: Size of each square patch.
+      :param embedding_dim: Dimension of embedding space.
+    """
+    super().__init__()
+    self.layer = torch.nn.Conv2d(in_channels=in_channels,
+                                 out_channels=embedding_dim,
+                                 kernel_size=patch_size,
+                                 stride=patch_size)
+    self.flatten = torch.nn.Flatten(start_dim=2)
+
+  def forward(self, xb):
+    return self.flatten(self.layer(xb)).permute(0,2,1)
+
+
+class PatchEmbedding(nn.Module):
+  def __init__(self, p: int=16, N: int=3136, D: int = 128):
+    super().__init__()
+    self.p = p
+    self.N = N
+    self.unfold = nn.Unfold(kernel_size=(p,p), stride=p) #Takes Images of [N, 3, 224, 224] -> [N, L, 3*p^2]. Needs permutation of axes.
+    self.embedding = nn.Linear(p*p*3, D) #Cheap learnable Embedding.
+
+  def forward(self, x):
+    x = self.unfold(x)
+    x = x.permute(0, 2, 1)
+    return self.embedding(x)
+
+
 def get_model_and_weights(model_name: str, weights_version: str = None) -> Tuple:
   """
   Takes specifications of the pretrained model and the weights to be loaded.
