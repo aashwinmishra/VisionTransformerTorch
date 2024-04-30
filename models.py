@@ -12,7 +12,7 @@ class PatchEmbeddingConv(torch.nn.Module):
   Defines the alternate Patch Embeddings via Conv layers in Dosovitskiy et al (2021).
   Attributes:
       layer: Convolutional layer to create patches and embeddings.
-      flatten: Flatten layer to flatten p \time p pathes to a p^2 vector.
+      flatten: Flatten layer to flatten p \time p patches to a p^2 vector.
   """
   def __init__(self, in_channels: int = 3, patch_size: int = 16, embedding_dim: int = 768):
     """
@@ -29,7 +29,36 @@ class PatchEmbeddingConv(torch.nn.Module):
     self.flatten = torch.nn.Flatten(start_dim=2)
 
   def forward(self, xb):
-    return self.flatten(self.layer(xb)).permute(0,2,1)
+    assert xb.shape[-1] % self.layer.stride == 0, "Images need to be patched perfectly."
+    return self.flatten(self.layer(xb)).permute(0, 2, 1)
+
+
+class ClassEmbedding(torch.nn.Module):
+  """
+  Defines a learnable class embedding for the ViT.
+  Attributes:
+    class_embedding: Parameter of size [batch_size, 1, embedding_dimension]
+  """
+  def __init__(self, batch_size: int=64, embedding_dim: int=768):
+    super().__init__()
+    self.class_embedding = torch.nn.Parameter(torch.rand(batch_size,1,embedding_dim))
+
+  def forward(self, xb):
+    return torch.cat([self.class_embedding, xb], dim=1)
+
+
+class PositionalEncoding(torch.nn.Module):
+  """
+  Defines a learnable positional encoding for the ViT.
+  Attributes:
+    positional_embedding: Parameter of size [1, sequence_length, embedding_dimension]
+  """
+  def __init__(self, sequence_length: int=197, embedding_dim: int=768):
+    super().__init__()
+    self.positional_embedding = torch.nn.Parameter(torch.randn(1,sequence_length, embedding_dim))
+
+  def forward(self, xb):
+    return xb + self.positional_embedding
 
 
 class PatchEmbedding(nn.Module):
