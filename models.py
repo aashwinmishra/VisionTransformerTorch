@@ -39,7 +39,7 @@ class ClassEmbedding(torch.nn.Module):
   Attributes:
     class_embedding: Parameter of size [batch_size, 1, embedding_dimension]
   """
-  def __init__(self, batch_size: int=64, embedding_dim: int=768):
+  def __init__(self, batch_size: int = 64, embedding_dim: int = 768):
     super().__init__()
     self.class_embedding = torch.nn.Parameter(torch.rand(batch_size,1,embedding_dim))
 
@@ -53,12 +53,39 @@ class PositionalEncoding(torch.nn.Module):
   Attributes:
     positional_embedding: Parameter of size [1, sequence_length, embedding_dimension]
   """
-  def __init__(self, sequence_length: int=197, embedding_dim: int=768):
+  def __init__(self, sequence_length: int = 197, embedding_dim: int = 768):
     super().__init__()
     self.positional_embedding = torch.nn.Parameter(torch.randn(1,sequence_length, embedding_dim))
 
   def forward(self, xb):
     return xb + self.positional_embedding
+
+
+class EncoderBlock(torch.nn.Module):
+    """
+    Defines the Transfrmer Encoder from Dosovitskiy et al (2021), with the ViT-Base Hyperparameters.
+    Attributes:
+      msa: Multihead Self Attention Layer
+      ln1: the first layer norm in Figure 1
+      mlp: the MLP block in Figure 1
+      ln2: the second layer norm in Figure 1.
+    """
+    def __init__(self, embed_dim: int = 768, num_heads: int = 12, mlp_size: int = 3072, dropout: float = 0.1):
+        super().__init__()
+        self.msa = torch.nn.MultiheadAttention(embed_dim=embed_dim, num_heads=num_heads, batch_first=True)
+        self.ln1 = torch.nn.LayerNorm(embed_dim)
+        self.mlp = torch.nn.Sequential(nn.Linear(embed_dim, mlp_size),
+                                       nn.GELU(),
+                                       nn.Dropout(dropout),
+                                       nn.Linear(mlp_size, embed_dim),
+                                       nn.Dropout(dropout))
+        self.ln2 = torch.nn.LayerNorm(embed_dim)
+
+    def forward(self, xb):
+        x = self.ln1(xb)
+        x, _ = self.msa(x, x, x, need_weights=False)
+        x = x + xb
+        return self.mlp(self.ln2(x)) + x
 
 
 class PatchEmbedding(nn.Module):
