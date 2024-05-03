@@ -1,1 +1,1 @@
-Documented workflow for image classification using arbitrary PyTorch models (ResNet, ViT, etc) on general image datasets.
+Documented implimentation of the Vision Transformer (ViT-Base) from Dosovitskiy et al (2021). Functionalities to create and train ViT-Base from scratch or use a Pre-Trained ViT. Additional functions to define, train and compare arbitrary PyTorch models (VGG, ResNet, ViT, etc) on general image datasets. 
